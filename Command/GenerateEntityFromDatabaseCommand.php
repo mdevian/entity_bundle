@@ -70,10 +70,10 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
 
                 $className = $class->name;
 
-                $entityPath    = $bundle->getPath() . '/Entity/' . $className . '.php';
+                $entityPath    = $bundle->getPath() . '/Entity/Base/' . $className . '.php';
                 $interfacePath = $bundle->getPath() . '/Model/Base/' . $className . 'Interface.php';
                 $managerPath   = $bundle->getPath() . '/Model/Manager/' . $className . 'Manager.php';
-                $class->name   = $bundle->getNamespace() . '\\Entity\\' . $className;
+                $class->name   = $bundle->getNamespace() . '\\Entity\\Base\\' . $className;
                 $code          = $this->getEntityGenerator()->generateEntityClass($class);
 
                 $this->createFileWithCode($entityPath, $code, $output);
