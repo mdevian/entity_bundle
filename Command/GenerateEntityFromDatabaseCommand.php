@@ -92,7 +92,7 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
                     'class'     => $bundle->getNamespace() . '\\Model\\Manager\\' . $className . 'Manager',
                     'arguments' => [
                         '\@doctrine.orm.' . $input->getOption('em') . '_entity_manager',
-                        $bundle->getNamespace() . '\\Entity\\' . $className
+                        $bundle->getNamespace() . '\\Entity\\Base\\' . $className
                     ]
                 ];
                 $output->writeln('');
