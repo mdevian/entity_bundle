@@ -85,7 +85,7 @@ use Doctrine\ORM\Mapping as ORM;
             $this->classesToUse[$this->getClassName($metadata)]
         );
         foreach ($this->classesToUse[$this->getClassName($metadata)] as $class) {
-            $ret .= 'use ' . str_replace('\\Entity', '\\Model\\Base', $this->getNamespace($metadata)) .
+            $ret .= 'use ' . str_replace('\\Entity\\', '\\Model\\', $this->getNamespace($metadata)) .
                 '\\' . $class . ';' . "\n";
         }
 
