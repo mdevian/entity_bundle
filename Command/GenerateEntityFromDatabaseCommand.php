@@ -16,8 +16,7 @@ use Wikimart\EntityBundle\Tool\EntityGenerator;
 use Wikimart\EntityBundle\Tool\InterfaceGenerator;
 use Wikimart\EntityBundle\Tool\ManagerGenerator;
 
-/** @author: pavel.saharov */
-class CreateCoreEntityFromDatabaseCommand extends DoctrineCommand
+class GenerateEntityFromDatabaseCommand extends DoctrineCommand
 {
     private $entityGenerator;
     private $interfaceGenerator;
