@@ -25,7 +25,7 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
     public function configure()
     {
         $this
-            ->setName('stool:entity:generate')
+            ->setName('wikimart:entity:generate')
             ->setDescription('Generate entities into from database')
             ->addArgument('bundle', null, InputArgument::REQUIRED, 'The destination bundle for entities.')
             ->addOption(
