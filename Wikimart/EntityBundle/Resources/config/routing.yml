@@ -1,0 +1,3 @@
+wikimart_entity_homepage:
+    path:     /hello/{name}
+    defaults: { _controller: WikimartEntityBundle:Default:index }

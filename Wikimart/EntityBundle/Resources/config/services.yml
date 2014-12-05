@@ -1,0 +1,4 @@
+services:
+#    wikimart_entity.example:
+#        class: Wikimart\EntityBundle\Example
+#        arguments: [@service_id, "plain_value", %parameter%]
