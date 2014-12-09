@@ -106,7 +106,11 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
 
         $this->createFileWithCode(
             $bundle->getPath() . '/Resources/config/managers/' . $type . '.yml',
-            str_replace('\@', '@', Yaml::dump(['services' => $services], 3)),
+            str_replace(
+                '""',
+                "'",
+                str_replace("'", '"', str_replace('\@', '@', Yaml::dump(['services' => $services], 3)))
+            ),
             $output
         );
     }
