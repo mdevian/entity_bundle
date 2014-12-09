@@ -93,7 +93,7 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
                 $services['manager.' . $type . '.' . strtolower($className)] = [
                     'class'     => $bundle->getNamespace() . '\\Model\\Manager\\' . $className . 'Manager',
                     'arguments' => [
-                        $type == 'default' ? '\@doctrine.orm.default_entity_manager' : '@=service(\'manager_configurator\').getManager()',
+                        $type == 'default' ? '\@doctrine.orm.default_entity_manager' : '@=service("manager_configurator").getManager()',
                         $bundle->getNamespace() . '\\Entity\\Base\\' . $className
                     ]
                 ];
