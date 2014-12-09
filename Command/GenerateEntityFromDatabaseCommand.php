@@ -61,6 +61,8 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
         $cmf->setEntityManager($em);
         $metadata = $cmf->getAllMetadata();
 
+        $type = strpos($input->getOption('em'), 'client') !== false ? 'client' : 'default';
+
 
         $services = [];
         $output->writeln(sprintf('Generating entities for "<info>%s</info>"', $bundle->getName()));
@@ -88,10 +90,10 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
 
                 $this->createFileWithCode($managerPath, $code, $output);
 
-                $services['manager.' . $input->getOption('em') . '.' . strtolower($className)] = [
+                $services['manager.' . $type . '.' . strtolower($className)] = [
                     'class'     => $bundle->getNamespace() . '\\Model\\Manager\\' . $className . 'Manager',
                     'arguments' => [
-                        '\@doctrine.orm.' . $input->getOption('em') . '_entity_manager',
+                        $type == 'default' ? '\@doctrine.orm.default_entity_manager' : '@=service(\'manager_configurator\').getManager()',
                         $bundle->getNamespace() . '\\Entity\\Base\\' . $className
                     ]
                 ];
@@ -103,7 +105,7 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
         }
 
         $this->createFileWithCode(
-            $bundle->getPath() . '/Resources/config/managers/' . $input->getOption('em') . '.yml',
+            $bundle->getPath() . '/Resources/config/managers/' . $type . '.yml',
             str_replace('\@', '@', Yaml::dump(['services' => $services], 3)),
             $output
         );
