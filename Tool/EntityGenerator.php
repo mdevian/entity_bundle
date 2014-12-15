@@ -103,7 +103,6 @@ use Doctrine\ORM\Mapping as ORM;
         $lines[] = $this->spaces . '/**';
 
 
-        $associationMapping['targetEntity'] .= 'Interface';
         if ($associationMapping['type'] & ClassMetadataInfo::TO_MANY) {
             $lines[] = $this->spaces . ' * @var \Doctrine\Common\Collections\Collection';
         } else {
