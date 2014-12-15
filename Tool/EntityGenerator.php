@@ -105,12 +105,15 @@ use Doctrine\ORM\Mapping as ORM;
 
         $associationMapping['targetEntity'] .= 'Interface';
         if ($associationMapping['type'] & ClassMetadataInfo::TO_MANY) {
-            $lines[] = $this->spaces . ' * @var ' . $associationMapping['targetEntity'] . '[]';
+            $lines[] = $this->spaces . ' * @var \Doctrine\Common\Collections\Collection';
         } else {
             if (strpos($associationMapping['targetEntity'], '\\') === false) {
-                $lines[] = $this->spaces . ' * @var ' . $associationMapping['targetEntity'];
+                $lines[] = $this->spaces . ' * @var ' . $associationMapping['targetEntity'] . 'Interface';
             } else {
-                $lines[] = $this->spaces . ' * @var \\' . ltrim($associationMapping['targetEntity'], '\\');
+                $lines[] = $this->spaces . ' * @var \\' . ltrim(
+                        $associationMapping['targetEntity'],
+                        '\\'
+                    ) . 'Interface';
             }
         }
 
