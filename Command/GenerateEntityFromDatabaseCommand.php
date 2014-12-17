@@ -93,14 +93,14 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
 
                 $this->createFileWithCode($interfacePath, $code, $output);
 
-                if (file_exists($managerPath)) {
+                if (!file_exists($managerPath)) {
                     $class->name = $bundle->getNamespace() . '\\Model\\Manager\\' . $className;
                     $code        = $this->getManagerGenerator()->generateManagerClass($class);
 
                     $this->createFileWithCode($managerPath, $code, $output);
                 }
 
-                if (file_exists($repoPath)) {
+                if (!file_exists($repoPath)) {
                     $class->name = $bundle->getNamespace() . '\\Repository\\' . $className;
                     $code        = $this->getRepoGenerator()->generateRepoClass($class);
 
