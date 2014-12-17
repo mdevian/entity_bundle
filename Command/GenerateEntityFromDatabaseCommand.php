@@ -15,12 +15,14 @@ use Symfony\Component\Yaml\Yaml;
 use Wikimart\EntityBundle\Tool\EntityGenerator;
 use Wikimart\EntityBundle\Tool\InterfaceGenerator;
 use Wikimart\EntityBundle\Tool\ManagerGenerator;
+use Wikimart\EntityBundle\Tool\RepositoryGenerator;
 
 class GenerateEntityFromDatabaseCommand extends DoctrineCommand
 {
     private $entityGenerator;
     private $interfaceGenerator;
     private $managerGenerator;
+    private $repoGenerator;
 
     public function configure()
     {
@@ -63,8 +65,9 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
 
         $type = strpos($input->getOption('em'), 'client') !== false ? 'client' : 'default';
 
+        $servicesFilename = $bundle->getPath() . '/Resources/config/managers/' . $type . '.yml';
+        $services         = file_exists($servicesFilename) ? Yaml::parse(file_get_contents($servicesFilename)) : ['services' => []];
 
-        $services = [];
         $output->writeln(sprintf('Generating entities for "<info>%s</info>"', $bundle->getName()));
         if ($metadata) {
             foreach ($metadata as $class) {
@@ -75,8 +78,13 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
                 $entityPath    = $bundle->getPath() . '/Entity/Base/' . $className . '.php';
                 $interfacePath = $bundle->getPath() . '/Model/Base/' . $className . 'Interface.php';
                 $managerPath   = $bundle->getPath() . '/Model/Manager/' . $className . 'Manager.php';
-                $class->name   = $bundle->getNamespace() . '\\Entity\\Base\\' . $className;
-                $code          = $this->getEntityGenerator()->generateEntityClass($class);
+                $repoPath      = $bundle->getPath() . '/Repository/' . $className . 'Repository.php';
+
+                $class->name                      = $bundle->getNamespace() . '\\Entity\\Base\\' . $className;
+                $class->customRepositoryClassName = $bundle->getNamespace(
+                    ) . '\\Repository\\' . $className . 'Repository';
+
+                $code = $this->getEntityGenerator()->generateEntityClass($class);
 
                 $this->createFileWithCode($entityPath, $code, $output);
 
@@ -85,18 +93,30 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
 
                 $this->createFileWithCode($interfacePath, $code, $output);
 
-                $class->name = $bundle->getNamespace() . '\\Model\\Manager\\' . $className;
-                $code        = $this->getManagerGenerator()->generateManagerClass($class);
+                if (!file_exists($managerPath)) {
+                    $class->name = $bundle->getNamespace() . '\\Model\\Manager\\' . $className;
+                    $code        = $this->getManagerGenerator()->generateManagerClass($class);
 
-                $this->createFileWithCode($managerPath, $code, $output);
+                    $this->createFileWithCode($managerPath, $code, $output);
+                }
 
-                $services['manager.' . $type . '.' . strtolower($className)] = [
-                    'class'     => $bundle->getNamespace() . '\\Model\\Manager\\' . $className . 'Manager',
-                    'arguments' => [
-                        $type == 'default' ? '\@doctrine.orm.default_entity_manager' : '\@=service(\'manager_configurator\').getManager()',
-                        $bundle->getNamespace() . '\\Entity\\Base\\' . $className
-                    ]
-                ];
+                if (!file_exists($repoPath)) {
+                    $class->name = $class->customRepositoryClassName;
+                    $code        = $this->getRepoGenerator()->generateRepoClass($class);
+
+                    $this->createFileWithCode($repoPath, $code, $output);
+                }
+
+                if (!isset($services['services']['manager.' . $type . '.' . strtolower($className)])) {
+                    $services['services']['manager.' . $type . '.' . strtolower($className)] = [
+                        'class'     => $bundle->getNamespace() . '\\Model\\Manager\\' . $className . 'Manager',
+                        'arguments' => [
+                            $type == 'default' ? '@doctrine.orm.default_entity_manager' : '@=service(\'manager_configurator\').getManager()',
+                            $bundle->getNamespace() . '\\Entity\\Base\\' . $className
+                        ]
+                    ];
+                }
+
                 $output->writeln('');
             }
         } else {
@@ -109,7 +129,7 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
             str_replace(
                 '""',
                 "'",
-                str_replace("'", '"', str_replace('\@', '@', Yaml::dump(['services' => $services], 3)))
+                str_replace("'", '"', Yaml::dump($services, 3))
             ),
             $output
         );
@@ -196,6 +216,22 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
         }
 
         return $this->managerGenerator;
+    }
+
+    /**
+     * @return RepositoryGenerator
+     */
+    protected function getRepoGenerator()
+    {
+        if (!$this->repoGenerator) {
+            $this->repoGenerator = new RepositoryGenerator();
+            $this->repoGenerator->setRegenerateEntityIfExists(false);
+            $this->repoGenerator->setUpdateEntityIfExists(true);
+            $this->repoGenerator->setNumSpaces(4);
+            $this->repoGenerator->setGenerateStubMethods(true);
+        }
+
+        return $this->repoGenerator;
     }
 
     /**

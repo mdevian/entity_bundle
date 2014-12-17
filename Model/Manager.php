@@ -130,24 +130,6 @@ abstract class Manager
     }
 
     /**
-     * @param array $criteria
-     *
-     * @return object
-     */
-    public function findBy(array $criteria)
-    {
-        return $this->getRepository()->findOneBy($criteria);
-    }
-
-    /**
-     * @return array
-     */
-    public function findAll()
-    {
-        return $this->getRepository()->findAll();
-    }
-
-    /**
      * @param $object
      */
     public function reload($object)
