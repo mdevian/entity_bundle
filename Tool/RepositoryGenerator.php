@@ -24,6 +24,8 @@ class RepositoryGenerator extends BaseEntityGenerator
 <namespace>
 
 use Doctrine\ORM\EntityRepository;
+use <modelNamespace>\<classname>Interface;
+use Doctrine\DBAL\LockMode;
 
 <repoAnnotation>
 <repoClassName>
@@ -39,7 +41,11 @@ use Doctrine\ORM\EntityRepository;
  * Class <classname>Repository
  *
  * @package <namespace>
- *
+
+ * @method <classname>Interface|null find($id, $lockMode = LockMode::NONE, $lockVersion = null)
+ * @method <classname>Interface[]    findAll()
+ * @method <classname>Interface[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method <classname>Interface|null findOneBy(array $criteria, array $orderBy = null)
  */';
 
     /**
@@ -53,12 +59,16 @@ use Doctrine\ORM\EntityRepository;
             '<namespace>',
             '<repoAnnotation>',
             '<repoClassName>',
+            '<modelNamespace>',
+            '<classname>'
         );
 
         $replacements = array(
             $this->generateRepoNamespace($metadata),
             $this->generateRepoDocBlock($metadata),
             $this->generateRepoClassName($metadata),
+            str_replace('\\Repository', '\\Model\\Base', $this->getNamespace($metadata)),
+            $this->getClassName($metadata),
         );
 
         $code = str_replace($placeHolders, $replacements, self::$classTemplate);
@@ -97,7 +107,7 @@ use Doctrine\ORM\EntityRepository;
      */
     protected function generateRepoClassName(ClassMetadataInfo $metadata)
     {
-        return 'class ' . $this->getClassName($metadata) . ' extends EntityRepository';
+        return 'class ' . $this->getClassName($metadata) . 'Repository extends EntityRepository';
     }
 
     /**

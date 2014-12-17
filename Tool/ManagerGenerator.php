@@ -27,7 +27,8 @@ class ManagerGenerator extends BaseEntityGenerator
 <namespace>
 
 use Wikimart\EntityBundle\Model\Manager;
-use AppBundle\Model\Base\<classname>Interface;
+use <modelNamespace>\<classname>Interface;
+use <repoNamespace>\<classname>Repository;
 
 <managerAnnotation>
 <managerClassName>
@@ -45,12 +46,11 @@ use AppBundle\Model\Base\<classname>Interface;
  *
  * @package <namespace>
  *
- * @method <classname>Interface   create()
+ * @method <classname>Interface  create()
  * @method <emptyStub> update(<classname>Interface $object, $andFlush = true)
  * @method <emptyStub> delete(<classname>Interface $object)
  * @method <emptyStub> reload(<classname>Interface $object)
- * @method <classname>Interface[] findAll()
- * @method <classname>Interface   findBy(array $criteria)
+ * @method <classname>Repository getRepository()
  */';
 
     /**
@@ -62,7 +62,7 @@ use AppBundle\Model\Base\<classname>Interface;
      */
     public function getInterface()
     {
-        return "\\\\AppBundle\\\\Model\\\\Base\\\\<classname>Interface";
+        return "\\\\<modelNamespace>\\\\<classname>Interface";
     }
 ';
 
@@ -79,7 +79,9 @@ use AppBundle\Model\Base\<classname>Interface;
             '<classname>',
             '<managerAnnotation>',
             '<managerClassName>',
-            '<managerBody>'
+            '<managerBody>',
+            '<modelNamespace>',
+            '<repoNamespace>',
         );
 
         $replacements = array(
@@ -87,7 +89,9 @@ use AppBundle\Model\Base\<classname>Interface;
             $this->getClassName($metadata),
             $this->generateManagerDocBlock($metadata),
             $this->generateManagerClassName($metadata),
-            $this->generateManagerBody($metadata)
+            $this->generateManagerBody($metadata),
+            str_replace('\\Model\\Manager', '\\Model\\Base', $this->getNamespace($metadata)),
+            str_replace('\\Model\\Manager', '\\Repository', $this->getNamespace($metadata))
         );
 
         $code = str_replace($placeHolders, $replacements, self::$classTemplate);
@@ -103,7 +107,9 @@ use AppBundle\Model\Base\<classname>Interface;
     protected function generateManagerNamespace(ClassMetadataInfo $metadata)
     {
         if ($this->hasNamespace($metadata)) {
-            return 'namespace ' . $this->getNamespace($metadata) .';';
+            return 'namespace ' . $this->getNamespace($metadata) . ';';
+        } else {
+            return '';
         }
     }
 
@@ -143,7 +149,7 @@ use AppBundle\Model\Base\<classname>Interface;
         $replacements = array(
             $this->getNamespace($metadata),
             $this->getClassName($metadata),
-            str_repeat(' ', mb_strlen($this->getClassName($metadata)) + 11),
+            str_repeat(' ', mb_strlen($this->getClassName($metadata)) + 10),
         );
 
         return str_replace($placeHolders, $replacements, self::$annotationTemplate);
@@ -158,10 +164,12 @@ use AppBundle\Model\Base\<classname>Interface;
     {
         $placeHolders = array(
             '<classname>',
+            '<modelNamespace>'
         );
 
         $replacements = array(
             $this->getClassName($metadata),
+            str_replace('\\', '\\\\', str_replace('\\Model\\Manager', '\\Model\\Base', $this->getNamespace($metadata))),
         );
 
         return str_replace($placeHolders, $replacements, self::$bodyTemplate);
