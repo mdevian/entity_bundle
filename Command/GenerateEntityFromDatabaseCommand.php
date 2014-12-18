@@ -14,6 +14,7 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\Yaml\Yaml;
 use Wikimart\EntityBundle\Tool\EntityGenerator;
 use Wikimart\EntityBundle\Tool\InterfaceGenerator;
+use Wikimart\EntityBundle\Tool\ManagerContainerGenerator;
 use Wikimart\EntityBundle\Tool\ManagerGenerator;
 use Wikimart\EntityBundle\Tool\RepositoryGenerator;
 
@@ -66,7 +67,11 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
         $type = strpos($input->getOption('em'), 'client') !== false ? 'client' : 'default';
 
         $servicesFilename = $bundle->getPath() . '/Resources/config/managers/' . $type . '.yml';
-        $services         = file_exists($servicesFilename) ? Yaml::parse(file_get_contents($servicesFilename)) : ['services' => []];
+        $services         = file_exists($servicesFilename) ? Yaml::parse(
+            file_get_contents($servicesFilename)
+        ) : ['services' => []];
+        $managers         = [];
+        $factoryServices  = [];
 
         $output->writeln(sprintf('Generating entities for "<info>%s</info>"', $bundle->getName()));
         if ($metadata) {
@@ -79,6 +84,8 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
                 $interfacePath = $bundle->getPath() . '/Model/Base/' . $className . 'Interface.php';
                 $managerPath   = $bundle->getPath() . '/Model/Manager/' . $className . 'Manager.php';
                 $repoPath      = $bundle->getPath() . '/Repository/' . $className . 'Repository.php';
+
+                $managers[] = $className . 'Manager';
 
                 $class->name                      = $bundle->getNamespace() . '\\Entity\\Base\\' . $className;
                 $class->customRepositoryClassName = $bundle->getNamespace(
@@ -107,6 +114,7 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
                     $this->createFileWithCode($repoPath, $code, $output);
                 }
 
+                $factoryServices[] = '@manager.' . $type . '.' . strtolower($className);
                 if (!isset($services['services']['manager.' . $type . '.' . strtolower($className)])) {
                     $services['services']['manager.' . $type . '.' . strtolower($className)] = [
                         'class'     => $bundle->getNamespace() . '\\Model\\Manager\\' . $className . 'Manager',
@@ -124,12 +132,29 @@ class GenerateEntityFromDatabaseCommand extends DoctrineCommand
             $output->writeln('', 'ERROR');
         }
 
+        $mcg = new ManagerContainerGenerator($managers, $bundle->getNamespace(), $type);
+        $this->createFileWithCode(
+            $bundle->getPath() . '/Configurator/' . ucfirst($type) . 'ManagerContainer.php',
+            $mcg->generateManagerContainer(),
+            $output
+        );
+        $this->createFileWithCode(
+            $bundle->getPath() . '/Configurator/' . ucfirst($type) . 'ManagerContainerFactory.php',
+            $mcg->generateManagerContainerFactory(),
+            $output
+        );
+
+        $services['services']['manager_factory.' . $type] = [
+            'class'     => $bundle->getNamespace() . '\\Configurator\\' . ucfirst($type) . 'ManagerContainerFactory',
+            'arguments' => array_merge(['@doctrine'], $factoryServices)
+        ];
+
         $this->createFileWithCode(
             $bundle->getPath() . '/Resources/config/managers/' . $type . '.yml',
             str_replace(
                 '""',
                 "'",
-                str_replace("'", '"', Yaml::dump($services, 3))
+                str_replace("'", '"', Yaml::dump($services, 4))
             ),
             $output
         );
