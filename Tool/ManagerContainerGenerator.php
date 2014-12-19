@@ -39,6 +39,7 @@ namespace <bundle>\Configurator;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 <use>
+use Doctrine\Common\Persistence\ObjectManager;
 
 class <type>ManagerContainerFactory
 {
@@ -77,6 +78,9 @@ class <type>ManagerContainerFactory
     public function getManagerContainer($emName = \'default\')
     {
         if (!isset($this->containers[$emName])) {
+             /**
+             * @var ObjectManager $em
+             */
             $em = $this->doctrine->getManager($emName);
 
             $this->containers[$emName] = new <type>ManagerContainer(
@@ -213,6 +217,6 @@ class <type>ManagerContainerFactory
                 '->setObjectManager($em)';
         }
 
-        return implode(', ' . PHP_EOL, $ret);
+        return implode(',' . PHP_EOL, $ret);
     }
 }
