@@ -35,7 +35,7 @@ abstract class Manager
     /**
      * @param ObjectManager $om
      *
-     * @return Manager
+     * @return $this
      */
     public function setObjectManager(ObjectManager $om)
     {
