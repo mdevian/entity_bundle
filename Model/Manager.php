@@ -125,7 +125,7 @@ abstract class Manager
         $this->validateObject($object);
         $this->objectManager->persist($object);
         if ($andFlush) {
-            $this->objectManager->flush();
+            $this->flush();
         }
     }
 
@@ -136,6 +136,11 @@ abstract class Manager
     {
         $this->validateObject($object);
         $this->objectManager->refresh($object);
+    }
+
+    public function flush()
+    {
+        $this->objectManager->flush();
     }
 
 }
